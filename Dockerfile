@@ -7,7 +7,8 @@ RUN apk add --no-cache -t build-dependencies \
     git \
     tzdata \
     nodejs \
-    yarn
+    yarn \
+    shared-mime-info
 
 WORKDIR /app
 
@@ -17,8 +18,11 @@ ENV RAILS_ENV production
 ENV RACK_ENV production
 ENV NODE_ENV production
 
-RUN gem install bundler && bundle install --deployment --without development test
+RUN gem install bundler -v 2.4.22 && bundle install --deployment --without development test
 
 COPY . ./
 
 RUN SECRET_KEY_BASE=docker ./bin/rake assets:precompile && ./bin/yarn cache clean
+
+ENTRYPOINT [ "sh", "-c" ]
+CMD [ "rm -rf tmp/pids && ./bin/rails s -p 3000 -b 0.0.0.0" ]
